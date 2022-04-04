@@ -1,0 +1,12 @@
+{
+  "name": "dynamodb-data-migrator",
+  "version": "0.1.0",
+  "description": "Tool to migrate dynamodb data from one table to another asynchronously",
+  "main": "main.js",
+  "author": "aahmad@xgrid.co",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "aws-sdk": "^2.882.0",
+    "dotenv": "^16.0.0"
+  }
+}
