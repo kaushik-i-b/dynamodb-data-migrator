@@ -2,14 +2,15 @@
 
 const AWS = require('aws-sdk');
 require('dotenv').config();
-const DES_REGION = process.env['DES_REGION'];
-const DES_ACCESSKEY_ID = process.env['DES_ACCESSKEY_ID'];
-const DES_SECRET_ACCESSKEY = process.env['DES_SECRET_ACCESSKEY'];
-const DES_SESSION_TOKEN = process.env['DES_SESSION_TOKEN'];
-const SOURCE_REGION = process.env['SOURCE_REGION'];
-const SOURCE_ACCESSKEY_ID = process.env['SOURCE_ACCESSKEY_ID'];
-const SOURCE_SECRET_ACCESSKEY = process.env['SOURCE_SECRET_ACCESSKEY'];
-const SOURCE_SESSION_TOKEN = process.env['SOURCE_SESSION_TOKEN'];
+const sts = new AWS.STS();
+ const DES_REGION = process.env['DES_REGION'];
+// const DES_ACCESSKEY_ID = process.env['DES_ACCESSKEY_ID'];
+// const DES_SECRET_ACCESSKEY = process.env['DES_SECRET_ACCESSKEY'];
+// const DES_SESSION_TOKEN = process.env['DES_SESSION_TOKEN'];
+ const SOURCE_REGION = process.env['SOURCE_REGION'];
+// const SOURCE_ACCESSKEY_ID = process.env['SOURCE_ACCESSKEY_ID'];
+// const SOURCE_SECRET_ACCESSKEY = process.env['SOURCE_SECRET_ACCESSKEY'];
+// const SOURCE_SESSION_TOKEN = process.env['SOURCE_SESSION_TOKEN'];
 
 
 let debugInfo = (info) =>{
@@ -19,25 +20,47 @@ let displayError = (info)=>{
   console.error(info)
 }
 
+const source_roleToAssume = {
+  RoleArn: 'arn:aws:iam::mainAWSaccount-ID:role/sourceRole',
+  RoleSessionName: 'sourceTest',
+  DurationSeconds: 900
+};
 
+const destination_roleToAssume = {
+  RoleArn: 'arn:aws:iam::mainAWSaccount-ID:role/destRole',
+  RoleSessionName: 'desRole',
+  DurationSeconds: 900
+};
 
+  const data = await sts.assumeRole(source_roleToAssume).promise();
+  const sourceRoleCred = {
+    accessKeyId: data.Credentials.AccessKeyId,
+    secretAccessKey: data.Credentials.SecretAccessKey,
+    sessionToken: data.Credentials.SessionToken
+  };
 
-const sourceDynamoDB = new AWS.DynamoDB({ /* Source AWS account credentials */
-  region: SOURCE_REGION, /* AWS Region */
-  credentials: {
-    accessKeyId: SOURCE_ACCESSKEY_ID, /* Access key ID */
-    secretAccessKey: SOURCE_SECRET_ACCESSKEY, /* Secret Access Key */
-    sessionToken: SOURCE_SESSION_TOKEN, /* Session Token */
-  },
-});
-const destinationDynamoDB = new AWS.DynamoDB({ /* Destination AWS account credentials */
-  region: DES_REGION, /* AWS Region */
-  credentials: {
-    accessKeyId:  DES_ACCESSKEY_ID , /* Access key ID */
-    secretAccessKey: DES_SECRET_ACCESSKEY, /* Secret Access Key */
-    sessionToken: DES_SESSION_TOKEN, /* Session Token */
-  },
-});
+  const sourceDynamoDB = new AWS.DynamoDB({ /* Source AWS account credentials */
+    region: SOURCE_REGION, /* AWS Region */
+    credentials: {
+      accessKeyId: sourceRoleCred.accessKeyId,
+      secretAccessKey: sourceRoleCred.secretAccessKey,
+      sessionToken: sourceRoleCred.sessionToken
+    },
+  });
+  const data_1 = await sts.assumeRole(destination_roleToAssume).promise();
+  const desRoleCred = {
+    accessKeyId: data_1.Credentials.AccessKeyId,
+    secretAccessKey: data_1.Credentials.SecretAccessKey,
+    sessionToken: data_1.Credentials.SessionToken
+  };
+  const destinationDynamoDB = new AWS.DynamoDB({ /* Destination AWS account credentials */
+    region: DES_REGION, /* AWS Region */
+    credentials: {
+      accessKeyId: desRoleCred.accessKeyId,
+      secretAccessKey: desRoleCred.secretAccessKey,
+      sessionToken: desRoleCred.sessionToken
+    },
+  });
 
 const sourceTable = ''; /* Source table name */
 const destinationTable = ''; /* Destination table name */
