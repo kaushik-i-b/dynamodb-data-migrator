@@ -32,7 +32,10 @@ const destination_roleToAssume = {
   DurationSeconds: 900
 };
 
-  const data = await sts.assumeRole(source_roleToAssume).promise();
+  const data = async () => {
+    await sts.assumeRole(source_roleToAssume).promise();
+  }
+
   const sourceRoleCred = {
     accessKeyId: data.Credentials.AccessKeyId,
     secretAccessKey: data.Credentials.SecretAccessKey,
@@ -47,7 +50,9 @@ const destination_roleToAssume = {
       sessionToken: sourceRoleCred.sessionToken
     },
   });
-  const data_1 = await sts.assumeRole(destination_roleToAssume).promise();
+  const data_1 = async() =>{
+    await sts.assumeRole(destination_roleToAssume).promise();
+  }
   const desRoleCred = {
     accessKeyId: data_1.Credentials.AccessKeyId,
     secretAccessKey: data_1.Credentials.SecretAccessKey,
